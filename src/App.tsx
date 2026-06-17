@@ -76,19 +76,7 @@ export default function App() {
   
   useEffect(() => {
     setMounted(true);
-    const updateSize = () => {
-      const maxAvailableWidth = window.innerWidth - 64; 
-      let c = Math.floor((maxAvailableWidth + 10) / 80);
-      if (c < 4) c = 4; 
-      if (c > 12) c = 12;
-      
-      setCols(c);
-      setContainerWidth(c * 80 - 10);
-    };
     
-    updateSize();
-    window.addEventListener('resize', updateSize);
-
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         async (position) => {
@@ -120,8 +108,6 @@ export default function App() {
         }
       );
     }
-
-    return () => window.removeEventListener('resize', updateSize);
   }, []);
 
   useEffect(() => {
@@ -188,30 +174,45 @@ export default function App() {
     'bg-[#D83B01]', 'bg-[#B4009E]', 'bg-[#002050]', 'bg-[#767676]', 'bg-[#E81123]'
   ];
 
+  // Dynamically calculate grid width based on the furthest tile to the right
+  const activeLayout = layouts.c12 || [];
+  const maxRightCol = activeLayout.length > 0 
+    ? Math.max(...activeLayout.map(item => item.x + item.w))
+    : 12;
+  
+  // Ensure we always have a minimum of 12 columns, and add 4 padding columns to the right for easy dragging
+  const dynamicCols = Math.max(12, maxRightCol + 4);
+  const dynamicWidth = dynamicCols * 80;
+  
+  // We override the custom breakpoints to only use a single layout constraint,
+  // preventing it from wrapping items to the next line on smaller screens.
+  const dynamicBreakpoints = { c12: 0 };
+  const dynamicCustomCols = { c12: dynamicCols };
+
   return (
-    <div className="min-h-screen bg-[#0A0A0A] text-white py-12 px-8 overflow-x-hidden flex flex-col font-sans select-none items-center">
-      <header className="flex justify-between items-end mb-10 w-full" style={{ maxWidth: containerWidth }}>
+    <div className="min-h-screen bg-[#0A0A0A] text-white py-12 px-12 overflow-x-auto flex flex-col font-sans select-none items-start">
+      <header className="flex justify-between items-end mb-10 w-full min-w-[800px]">
         <h1 className="text-6xl font-light tracking-tight text-white/90">Start</h1>
         <div className="flex items-center space-x-4 mb-2">
           <span className="text-right hidden sm:block">
             <div className="text-lg font-medium leading-none">Alex Chen</div>
             <div className="text-xs text-white/50 uppercase tracking-widest mt-1">Pro Account</div>
           </span>
-          <div className="w-12 h-12 bg-[#0078D7] rounded-full border-2 border-white/20 flex items-center justify-center text-xl font-bold overflow-hidden cursor-pointer" onClick={() => setIsDrawerOpen(true)}>
+          <div className="w-12 h-12 bg-[#0078D7] rounded-full border-2 border-white/20 flex items-center justify-center text-xl font-bold overflow-hidden cursor-pointer hover:ring-2 hover:ring-white/40 transition-all" onClick={() => setIsDrawerOpen(true)}>
             <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80" alt="Avatar" className="w-full h-full object-cover hover:scale-110 transition-transform" />
           </div>
         </div>
       </header>
 
-      <div className="w-full flex-1 flex justify-center">
-        <div style={{ width: containerWidth }}>
+      <div className="w-full flex-1 flex justify-start pb-20">
+        <div style={{ width: dynamicWidth, minWidth: dynamicWidth }}>
           {mounted && (
             <Responsive
               className="layout"
               layouts={layouts}
-              breakpoints={customBreakpoints}
-              cols={customCols}
-              width={containerWidth}
+              breakpoints={dynamicBreakpoints}
+              cols={dynamicCustomCols}
+              width={dynamicWidth}
               rowHeight={70}
               margin={[10, 10]}
               containerPadding={[0, 0]}
