@@ -1,0 +1,85 @@
+@import "tailwindcss";
+@import "react-grid-layout/css/styles.css";
+@import "react-resizable/css/styles.css";
+
+body {
+  background-color: #0A0A0A;
+  color: #fff;
+  min-height: 100vh;
+  margin: 0;
+  overflow-x: hidden;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+/* Custom Resize Handle styling for a Metro look */
+.react-resizable-handle::after {
+  content: "";
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  width: 10px;
+  height: 10px;
+  border-right: 2px solid rgba(255, 255, 255, 0.5);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.5);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.react-grid-item:hover .react-resizable-handle::after {
+  opacity: 1;
+}
+
+/* Make grid repositioning smooth and slightly slower */
+.react-grid-item.cssTransforms {
+  transition-property: transform, width, height !important;
+  transition-duration: 600ms !important;
+  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.react-grid-item.resizing {
+  z-index: 100;
+  will-change: width, height;
+}
+
+/* Container queries for tiles */
+.tile-container-ctx {
+  container-type: size;
+}
+
+.show-on-small-tile {
+  display: none !important;
+}
+
+@container (max-width: 100px) and (max-height: 100px) {
+  .hide-on-small-tile {
+    display: none !important;
+  }
+  .show-on-small-tile {
+    display: flex !important;
+  }
+}
+
+/* Hover & Drag behaviors */
+.react-grid-item.react-draggable-dragging {
+  will-change: transform;
+  z-index: 105;
+}
+
+.react-grid-item.react-draggable-dragging .tile-inner {
+  transform: scale(1.03);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+}
+
+.react-grid-item:active:not(.react-draggable-dragging) .tile-inner {
+  transform: scale(0.96);
+}
+
+/* The placeholder grid item that shows where it will drop */
+.react-grid-item.react-grid-placeholder {
+  background: rgba(255, 255, 255, 0.15) !important;
+  border: 2px dashed rgba(255, 255, 255, 0.4);
+  transition-duration: 100ms;
+  z-index: 2;
+  user-select: none;
+}
+
