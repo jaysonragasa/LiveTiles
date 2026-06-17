@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Responsive, LayoutItem, ResponsiveLayouts } from 'react-grid-layout/legacy';
 import { initialTiles, initialLayouts, ALL_APPS } from './data';
 import { Tile } from './components/Tile';
@@ -59,6 +59,7 @@ export default function App() {
   const [contextMenu, setContextMenu] = useState<{x: number, y: number, tileId: string} | null>(null);
   const [activeApp, setActiveApp] = useState<string | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const isDraggingRef = useRef(false);
 
   const handleContextMenu = (e: React.MouseEvent, tileId: string) => {
     e.preventDefault();
@@ -215,6 +216,8 @@ export default function App() {
               margin={[10, 10]}
               containerPadding={[0, 0]}
               onLayoutChange={onLayoutChange}
+              onDragStart={() => { isDraggingRef.current = true; }}
+              onDragStop={() => { setTimeout(() => { isDraggingRef.current = false; }, 50); }}
               isBounded={false}
               compactType="vertical"
               useCSSTransforms={true}
@@ -222,9 +225,12 @@ export default function App() {
             >
               {tiles.map(tile => (
                 <div 
-                  key={tile.id} 
+                  key={tile.id}
                   onContextMenu={(e) => handleContextMenu(e, tile.id)}
-                  onClick={() => setActiveApp(tile.id)}
+                  onPointerUp={(e) => {
+                    if (isDraggingRef.current) return;
+                    setActiveApp(tile.id);
+                  }}
                 >
                   <Tile tile={tile} />
                 </div>
