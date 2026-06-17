@@ -242,6 +242,7 @@ export default function App() {
               onDragStart={() => { isDraggingRef.current = true; }}
               onDragStop={() => { setTimeout(() => { isDraggingRef.current = false; }, 50); }}
               isBounded={false}
+              isResizable={false}
               compactType="vertical"
               useCSSTransforms={true}
               draggableCancel=".no-drag"
