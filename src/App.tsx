@@ -69,7 +69,7 @@ export default function App() {
     e.preventDefault();
     
     const menuWidth = 192; // w-48 is 192px
-    const menuHeight = 250; // Approx height of the context menu
+    const menuHeight = 350; // Accurate height of the context menu including colors and buttons
     
     let x = e.clientX;
     let y = e.clientY;
@@ -78,7 +78,7 @@ export default function App() {
       x = window.innerWidth - menuWidth - 10;
     }
     if (y + menuHeight > window.innerHeight) {
-      y = window.innerHeight - menuHeight - 10;
+      y = Math.max(10, window.innerHeight - menuHeight - 10);
     }
     
     setContextMenu({ x, y, tileId });
