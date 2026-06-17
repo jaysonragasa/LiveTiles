@@ -32,6 +32,7 @@ const customCols = {
 
 const STORAGE_KEY_LAYOUTS = 'live-tiles-layouts';
 const STORAGE_KEY_TILES = 'live-tiles-data';
+const STORAGE_KEY_GROUPS = 'live-tiles-groups';
 
 export default function App() {
   const [layouts, setLayouts] = useState<ResponsiveLayouts>(() => {
@@ -58,6 +59,14 @@ export default function App() {
   });
   
   const [mounted, setMounted] = useState(false);
+  const [groups, setGroups] = useState<Record<string, { name: string }>>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY_GROUPS);
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return { group_0: { name: 'Apps' } };
+  });
+  const [clusters, setClusters] = useState<{ id: string, minX: number, maxX: number }[]>([]);
   const [cols, setCols] = useState(12);
   const [containerWidth, setContainerWidth] = useState(1240);
   const [contextMenu, setContextMenu] = useState<{x: number, y: number, tileId: string} | null>(null);
@@ -141,8 +150,84 @@ export default function App() {
     }
   }, [tiles, mounted]);
 
+  useEffect(() => {
+    if (mounted) {
+      localStorage.setItem(STORAGE_KEY_GROUPS, JSON.stringify(groups));
+    }
+  }, [groups, mounted]);
+
   const onLayoutChange = (layout: LayoutItem[], allLayouts: ResponsiveLayouts) => {
     setLayouts(allLayouts);
+
+    if (layout.length === 0) {
+      setClusters([]);
+      return;
+    }
+
+    const sorted = [...layout].sort((a, b) => a.x - b.x);
+    const newClusters: { minX: number, maxX: number, items: LayoutItem[] }[] = [];
+    let currentCluster = { minX: sorted[0].x, maxX: sorted[0].x + sorted[0].w, items: [sorted[0]] };
+    
+    for (let i = 1; i < sorted.length; i++) {
+      const item = sorted[i];
+      if (item.x <= currentCluster.maxX) {
+        currentCluster.maxX = Math.max(currentCluster.maxX, item.x + item.w);
+        currentCluster.items.push(item);
+      } else {
+        newClusters.push(currentCluster);
+        currentCluster = { minX: item.x, maxX: item.x + item.w, items: [item] };
+      }
+    }
+    newClusters.push(currentCluster);
+
+    setGroups(prevGroups => {
+      const newGroups = { ...prevGroups };
+      const assignedGroupIds = new Set<string>();
+      let tilesChanged = false;
+      const updatedTiles = [...tiles];
+
+      const finalClusters = newClusters.map(c => {
+        const counts: Record<string, number> = {};
+        c.items.forEach(item => {
+          const tile = tiles.find(t => t.id === item.i);
+          if (tile && tile.groupId) {
+            counts[tile.groupId] = (counts[tile.groupId] || 0) + 1;
+          }
+        });
+
+        let dominantId: string | null = null;
+        let maxCount = 0;
+        for (const [gid, count] of Object.entries(counts)) {
+          if (count > maxCount && !assignedGroupIds.has(gid)) {
+            maxCount = count;
+            dominantId = gid;
+          }
+        }
+
+        if (!dominantId) {
+          dominantId = `group_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+          newGroups[dominantId] = { name: "New Group" };
+        }
+
+        assignedGroupIds.add(dominantId);
+
+        c.items.forEach(item => {
+          const tileIdx = updatedTiles.findIndex(t => t.id === item.i);
+          if (tileIdx > -1 && updatedTiles[tileIdx].groupId !== dominantId) {
+            updatedTiles[tileIdx] = { ...updatedTiles[tileIdx], groupId: dominantId };
+            tilesChanged = true;
+          }
+        });
+
+        return { id: dominantId!, minX: c.minX, maxX: c.maxX };
+      });
+
+      setClusters(finalClusters);
+      if (tilesChanged) {
+        setTiles(updatedTiles);
+      }
+      return newGroups;
+    });
   };
 
   const resizeTile = (id: string, size: 'small' | 'medium' | 'wide' | 'large') => {
@@ -228,7 +313,22 @@ export default function App() {
       </header>
 
       <div className="w-full flex-1 flex justify-start pb-20">
-        <div style={{ width: dynamicWidth, minWidth: dynamicWidth }}>
+        <div style={{ width: dynamicWidth, minWidth: dynamicWidth, position: 'relative', paddingTop: 40 }}>
+          {mounted && clusters.map(c => (
+            <div 
+              key={c.id}
+              className="absolute top-0 h-10 flex items-center"
+              style={{ left: c.minX * 80, width: (c.maxX - c.minX) * 80 - 10 }}
+            >
+              <input
+                value={groups[c.id]?.name || 'New Group'}
+                onChange={(e) => setGroups(prev => ({ ...prev, [c.id]: { name: e.target.value } }))}
+                className="bg-transparent text-white/50 hover:text-white focus:text-white hover:bg-white/10 px-2 py-1 -ml-2 rounded text-xl font-light tracking-wide outline-none w-full transition-colors"
+                placeholder="Name group"
+              />
+            </div>
+          ))}
+
           {mounted && (
             <Responsive
               className="layout"

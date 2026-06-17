@@ -13,6 +13,7 @@ export interface TileData {
     content?: string[];
     images?: string[]; 
     slideDirection?: 'up' | 'down' | 'left' | 'right';
+    groupId?: string;
 }
 
 export interface Program {
