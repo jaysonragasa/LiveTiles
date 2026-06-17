@@ -238,6 +238,7 @@ export default function App() {
                   onContextMenu={(e) => handleContextMenu(e, tile.id)}
                   onPointerUp={(e) => {
                     if (isDraggingRef.current) return;
+                    if (e.button !== 0) return; // Only allow left click to open app
                     setActiveApp(tile.id);
                   }}
                 >
