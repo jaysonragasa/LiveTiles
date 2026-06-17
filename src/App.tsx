@@ -156,9 +156,8 @@ export default function App() {
     }
   }, [groups, mounted]);
 
-  const onLayoutChange = (layout: LayoutItem[], allLayouts: ResponsiveLayouts) => {
-    setLayouts(allLayouts);
-
+  useEffect(() => {
+    const layout = layouts.c12 || [];
     if (layout.length === 0) {
       setClusters([]);
       return;
@@ -228,6 +227,11 @@ export default function App() {
       }
       return newGroups;
     });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [layouts.c12]); // Explicitly only depend on layouts.c12 to avoid loops
+
+  const onLayoutChange = (layout: LayoutItem[], allLayouts: ResponsiveLayouts) => {
+    setLayouts(allLayouts);
   };
 
   const resizeTile = (id: string, size: 'small' | 'medium' | 'wide' | 'large') => {
