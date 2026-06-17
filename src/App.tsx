@@ -64,6 +64,7 @@ export default function App() {
   const [activeApp, setActiveApp] = useState<string | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const isDraggingRef = useRef(false);
+  const isResizingRef = useRef(false);
 
   const handleContextMenu = (e: React.MouseEvent, tileId: string) => {
     e.preventDefault();
@@ -241,8 +242,9 @@ export default function App() {
               onLayoutChange={onLayoutChange}
               onDragStart={() => { isDraggingRef.current = true; }}
               onDragStop={() => { setTimeout(() => { isDraggingRef.current = false; }, 50); }}
+              onResizeStart={() => { isResizingRef.current = true; }}
+              onResizeStop={() => { setTimeout(() => { isResizingRef.current = false; }, 50); }}
               isBounded={false}
-              isResizable={false}
               compactType="vertical"
               useCSSTransforms={true}
               draggableCancel=".no-drag"
@@ -252,7 +254,7 @@ export default function App() {
                   key={tile.id}
                   onContextMenu={(e) => handleContextMenu(e, tile.id)}
                   onPointerUp={(e) => {
-                    if (isDraggingRef.current) return;
+                    if (isDraggingRef.current || isResizingRef.current) return;
                     if (e.button !== 0) return; // Only allow left click to open app
                     setActiveApp(tile.id);
                   }}
