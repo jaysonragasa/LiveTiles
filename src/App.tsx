@@ -67,7 +67,21 @@ export default function App() {
 
   const handleContextMenu = (e: React.MouseEvent, tileId: string) => {
     e.preventDefault();
-    setContextMenu({ x: e.clientX, y: e.clientY, tileId });
+    
+    const menuWidth = 192; // w-48 is 192px
+    const menuHeight = 250; // Approx height of the context menu
+    
+    let x = e.clientX;
+    let y = e.clientY;
+    
+    if (x + menuWidth > window.innerWidth) {
+      x = window.innerWidth - menuWidth - 10;
+    }
+    if (y + menuHeight > window.innerHeight) {
+      y = window.innerHeight - menuHeight - 10;
+    }
+    
+    setContextMenu({ x, y, tileId });
   };
 
   const closeContextMenu = () => setContextMenu(null);
