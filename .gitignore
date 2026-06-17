@@ -2,6 +2,7 @@ node_modules/
 build/
 dist/
 coverage/
+.vite/deps
 .DS_Store
 *.log
 .env*
