@@ -31,3 +31,11 @@ export const initialLayouts: LayoutItem[] = [
   { i: 'calc', x: 10, y: 2, w: 1, h: 1, minW: 1, minH: 1 },
   { i: 'alarm', x: 10, y: 3, w: 1, h: 1, minW: 1, minH: 1 },
 ];
+
+export const ALL_APPS: TileData[] = [
+  ...initialTiles,
+  { id: 'settings', type: 'static', colorClass: 'bg-[#4C4A48]', title: 'Settings', icon: 'Settings' },
+  { id: 'camera', type: 'static', colorClass: 'bg-[#00A4EF]', title: 'Camera', icon: 'Camera' },
+  { id: 'netflix', type: 'static', colorClass: 'bg-[#E50914]', title: 'Netflix', icon: 'Film' },
+  { id: 'spotify', type: 'static', colorClass: 'bg-[#1DB954]', title: 'Spotify', icon: 'Headphones' },
+];
