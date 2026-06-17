@@ -30,9 +30,32 @@ const customCols = {
   c12: 12, c11: 11, c10: 10, c9: 9, c8: 8, c7: 7, c6: 6, c5: 5, c4: 4, c3: 3, c2: 2, c1: 1
 };
 
+const STORAGE_KEY_LAYOUTS = 'live-tiles-layouts';
+const STORAGE_KEY_TILES = 'live-tiles-data';
+
 export default function App() {
-  const [layouts, setLayouts] = useState<ResponsiveLayouts>({ c12: initialLayouts });
-  const [tiles, setTiles] = useState(initialTiles);
+  const [layouts, setLayouts] = useState<ResponsiveLayouts>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY_LAYOUTS);
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return { c12: initialLayouts };
+  });
+  
+  const [tiles, setTiles] = useState(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY_TILES);
+      if (saved) {
+        // Merge saved tiles with base app definitions to ensure we don't lose new fields
+        const parsed = JSON.parse(saved);
+        return parsed.map((savedTile: any) => {
+          const baseApp = ALL_APPS.find(a => a.id === savedTile.id);
+          return baseApp ? { ...baseApp, ...savedTile } : savedTile;
+        });
+      }
+    } catch (e) {}
+    return initialTiles;
+  });
   
   const [mounted, setMounted] = useState(false);
   const [cols, setCols] = useState(12);
@@ -90,6 +113,18 @@ export default function App() {
       );
     }
   }, []);
+
+  useEffect(() => {
+    if (mounted) {
+      localStorage.setItem(STORAGE_KEY_LAYOUTS, JSON.stringify(layouts));
+    }
+  }, [layouts, mounted]);
+
+  useEffect(() => {
+    if (mounted) {
+      localStorage.setItem(STORAGE_KEY_TILES, JSON.stringify(tiles));
+    }
+  }, [tiles, mounted]);
 
   const onLayoutChange = (layout: LayoutItem[], allLayouts: ResponsiveLayouts) => {
     setLayouts(allLayouts);
