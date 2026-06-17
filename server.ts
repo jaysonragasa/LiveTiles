@@ -5,7 +5,7 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-async function startServer() {
+export async function startServer() {
   const app = express();
   const PORT = 3000;
 
@@ -86,9 +86,12 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+  return new Promise((resolve) => {
+    app.listen(PORT, "0.0.0.0", () => {
+      console.log(`Server running on http://localhost:${PORT}`);
+      resolve(PORT);
+    });
   });
 }
 
-startServer();
+export const serverPromise = startServer();
