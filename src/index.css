@@ -83,3 +83,7 @@ body {
   user-select: none;
 }
 
+.react-grid-item.react-draggable-dragging,
+.react-grid-item.resizing {
+  transition: none !important;
+}
